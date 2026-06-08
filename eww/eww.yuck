@@ -1,0 +1,330 @@
+(include "./yuck/widgets.yuck")
+(include "./yuck/end.yuck")
+
+(defwindow status
+  :monitor 0 ;; Optional for X11
+  :stacking "fg"
+  :exclusive false
+  :windowtype "dock"
+  :wm-ignore true
+  :geometry (geometry
+              :x "0px"
+              :y "0px"
+              :width "67%"
+              :height "50%"
+              :anchor "top center")
+  (powermenu)
+)
+
+(defwindow search
+  :monitor 0 ;; Optional for X11
+  :stacking "fg"
+  :exclusive true
+  :windowtype "dock"
+  :wm-ignore true
+  :focusable true
+  :geometry (geometry
+              :x "0px"
+              :y "-60%"
+              :width "35%"
+              :width "60%"
+              :height "10%"
+              :anchor "center center")
+  (box :space-evenly true
+    :orientation "h"
+    (box :space-evenly false
+      :spacing search-spacing
+      :class "bg"
+      :orientation "v"
+      (input :class "searchbar" 
+           :onchange "~/.local/bin/search '{}' &"
+           :onaccept firstapp
+      )
+      (audio-visualiser :width 70)
+      (scroll :hscroll true :vscroll false 
+        (box :class "container" :space-evenly false :orientation "horizontal"
+          (for app in apps
+             (app-entry :exec {app.exec}
+                        :icon {app.icon}
+                        :name {app.name}
+             )
+          )
+      )
+      )
+      (box :orientation "h"
+        (scroll :vscroll true 
+         (button
+          :class "notes"
+          :onclick `obsidian "/home/soi/Documents/Obsidian-Vault/todo.md" & eww close status `
+            (label 
+              :text "${notes}"
+            )
+          )
+        )
+        (scroll :height 300 :hscroll false :vscroll true 
+          (box :class "container" :orientation "vertical" 
+            (for file in files
+               (file-entry :open_with {file.open_with}
+                           :dir {file.dir}
+                           :icon {file.icon}
+                           :name {file.name}
+               )
+            )
+          )
+        )
+        (literal :content display)
+      )
+
+    )
+  )
+)
+
+(defwindow wifi
+  :monitor 0 ;; Optional for X11
+  :stacking "fg"
+  :exclusive true
+  :windowtype "dock"
+  :wm-ignore false
+  :geometry (geometry
+              :x "0px"
+              :y "10px"
+              :width "10%"
+              :height "50%"
+              :anchor "top right")
+  (box :orientation "v"
+    (for network in wifilist
+      (button :onclick "nmcli device wifi connect '${network}' & eww close wifi" :class "wifilist" {network})
+    )
+  )
+)
+
+(defwindow volume
+  :monitor 0 ;; Optional for X11
+  :stacking "fg"
+  :exclusive true
+  :windowtype "dock"
+  :wm-ignore true
+  :geometry (geometry
+              :x "0px"
+              :y "10px"
+              :width "8%"
+              :height "1%"
+              :anchor "top right")
+  (box :orientation "v"
+    (box :orientation "h"
+         :space-evenly false
+         :class "wifilist"
+      (button :onclick "pavucontrol &" " ")
+      (volume-bar
+        :value speaker-volume
+        :onchange "pactl set-sink-volume @DEFAULT_SINK@ $(({} * 151 / 100))% && eww update speaker-volume='{}'"
+      )
+    )
+    (box :orientation "h"
+         :space-evenly false
+         :class "wifilist"
+      (button :onclick "pavucontrol &" " ")
+      (volume-bar
+        :value mic-volume
+        :onchange "pactl set-source-volume @DEFAULT_SOURCE@ $(({} * 151 / 100))% && eww update mic-volume='{}'"
+      )
+    )
+  )
+)
+
+(defwindow top-bar
+  :monitor 0 ;; Optional for X11
+  :stacking "fg"
+  :exclusive true
+  :focusable false
+  :geometry (geometry
+              :x "0%"
+              :y "-0.1px"
+              :width "100%"
+              :height "40px"
+              :anchor "top center")
+  (centerbox
+    (left)
+    ; (time-text)
+    (centerbox
+      :space-evenly false
+      :spacing 0
+      (revealer :reveal {weather!=""}
+        (box
+          :space-evenly false
+          :spacing 32
+          (panel :width 10
+            :spacing 10
+            "${weather.icon}"
+            "${weather.feels_like}"
+          )
+          (panel :width 10
+            '🌬️ ${weather.wind} 💧${weather.humidity}'
+          )
+        )
+      )
+      (time-text)
+      (revealer :reveal {playerctl.status != "Stopped"}
+        (box :space-evenly false 
+             :spacing 32
+          (panel
+            :width 0
+            (box
+              (image :image-height 20 :path {playerctl.artUrl})
+                (box :space-evenly false 
+                  :spacing player-button-spacing
+                  :orientation "h"
+                  (button 
+                    :class "controls"
+                    :onclick 'playerctl previous && eww update playerctl="$(bash ~/.config/eww/scripts/playerctl.sh)"'
+                    "󰒮")
+                  (button 
+                    :class "controls"
+                    :onclick 'playerctl play-pause && eww update playerctl="$(bash ~/.config/eww/scripts/playerctl.sh)"'
+                    {playerctl.status == "Paused" ? "󰐊" : "󰏤"})
+                  (button 
+                    :class "controls"
+                    :onclick 'playerctl next && eww update playerctl="$(bash ~/.config/eww/scripts/playerctl.sh)"'
+                    "󰒭")
+                )
+            )
+          )
+          (panel
+            :width 10
+            :spacing 10
+            (label :class "player" :text { playerctl.status == "Stopped" ? "" : "${playerctl.artist}: ${playerctl.title}"})
+            ; (overlay
+            ;   "‏‏‎                                                                                                                                 ‎"
+            ;   (progress-bar)
+            ;   (vibin :class "player" :text { playerctl.status == "Stopped" ? "" : "${playerctl.artist}: ${playerctl.title}"} :cap 30)
+            ; )
+          )
+        )
+      )
+    )
+    (right)
+  )
+)
+
+(defwindow stupid-fucking-reverse-corners
+  :monitor 0 ;; Optional for X11
+  :stacking "bg"
+  :exclusive false 
+  :focusable false
+  :geometry (geometry
+              :x "0%"
+              :y "0px"
+              :width "100.1%"
+              :height "48px"
+              :anchor "top center")
+  (box :space-evenly true
+       :spacing 3066
+    (image :image-height height
+        :path "/home/${user}/.config/eww/sprites/left.svg")
+    (image :image-height height
+        :path "/home/${user}/.config/eww/sprites/right.svg")
+  )
+)
+
+(defwidget time-text []
+  (box :space-evenly false
+    (image :image-height height
+        :path "/home/${user}/.config/eww/sprites/right.svg")
+    (button
+      :class "timey topbar"  
+      :onclick "eww open status --toggle"
+      (label :class "timey" :text {formattime(EWW_TIME, '%l:%M %p')})
+    )
+    (image :image-height height
+        :path "/home/${user}/.config/eww/sprites/left.svg")
+  )
+)
+
+(defwidget left []
+  (box :space-evenly false
+        :spacing 0
+  (box :space-evenly false
+    :class "topbar lefty"
+    (bar-icon :onclick "[[ $(eww get notif) == 'true' ]] && eww update notif='false' || eww update notif='true'"
+              :class "bar-icon"
+              :icon "☬"
+              :value1 {activeworkspace.windows*10}
+              :value2 {activeworkspace.id*10}
+    )
+
+  (label :limit-width 50 :xalign 0 :text {activewindow.title ?: "YuchiruOS"})
+  )
+  (image :image-height height
+      :path "/home/${user}/.config/eww/sprites/left.svg")
+  )
+)
+
+(defwidget right []
+  (box :space-evenly false
+        :spacing 0
+        :halign "end"
+  (image :image-height height
+      :path "/home/${user}/.config/eww/sprites/right.svg")
+  (box :space-evenly false
+    :class "topbar righty"
+      (bar-icon :onclick "kitty btop --force-utf &"
+                :class "bar-icon"
+                :icon ""
+                :value1 {EWW_TEMPS["K10TEMP_TCTL"]}
+                :value2 {EWW_CPU["avg"]}
+      )
+      (bar-icon :onclick "kitty btop --force-utf &"
+                :class "bar-icon"
+                :icon ""
+                :value1 {EWW_TEMPS["AMDGPU_EDGE"]}
+                :value2 {EWW_RAM["used_mem_perc"]}
+      )
+      (bar-icon :onclick "eww close wifi & eww open volume --toggle"
+                :class "bar-icon"
+                :icon ""
+                :value1 {speaker-volume}
+                :value2 {mic-volume}
+      )
+      (bar-icon :onclick "eww close volume & eww open wifi --toggle && ./scripts/wifi.sh"
+                :class "bar-icon"
+                :icon "󰤨"
+                :value1 {EWW_NET["wlan0"]["NET_DOWN"]}
+                :value2 {EWW_NET["wlan0"]["NET_UP"]}
+      )
+    )
+  )
+)
+
+(defwidget powermenu[]
+(box :space-evenly false
+    :halign "center"
+    :valign "center"
+    :orientation "h"
+    (box :space-evenly false
+         :orientation "v"
+      (box :space-evenly false
+           :class "bg"
+           :orientation "v"
+        (label :class "smol" :text {formattime(EWW_TIME, "%-dth %B, %Y")})
+        (calendar)
+      )
+      (box :space-evenly false
+        :class "powermenu"
+        :spacing power-spacing
+        :orientation "v"
+        (box :space-evenly false
+          :spacing power-spacing
+          :orientation "h"
+          (button :onclick "shutdown now | eww open status --toggle"
+            "󰐥")
+          (button :onclick "reboot | eww open status --toggle"
+            "󰜉")
+          (button :onclick "loginctl terminate-session | eww open status --toggle"
+            "󰍃")
+          (button :onclick "suspend | eww open status --toggle"
+            "󰒲")
+        )
+      )
+    )
+  )
+)
