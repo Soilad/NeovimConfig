@@ -11,13 +11,12 @@ vim.cmd("set relativenumber")
 
 vim.schedule(function()
 	vim.opt.clipboard = "unnamedplus"
-end
-)
+end)
 
-vim.api.nvim_create_autocmd({'TextYankPost'}, {
-  callback = function()
-    vim.hl.on_yank()
-  end,
+vim.api.nvim_create_autocmd({ "TextYankPost" }, {
+	callback = function()
+		vim.hl.on_yank()
+	end,
 })
 
 -- vim.opt.colorcolumn = {81}
@@ -147,147 +146,75 @@ require("lualine").setup({
 	extensions = {},
 })
 
-require('mini.surround').setup()
+require("mini.surround").setup()
 -- require('mini.animate').setup()
-require('mini.ai').setup()
+require("mini.ai").setup()
 -- require('mini.files').setup()
 
-require('treesj').setup({
-  langs = {
-    gdscript = {
-      -- Arrays: e.g., [1, 2, 3] ↔ multi‑line without orphaned commas
-      array = {
-        format = 'list',
-        recursive = true,
-        nodes = {
-          element = { 'expression' },   -- actual elements inside the array
-          separator = { ',' },      -- comma nodes
-        },
-        trailing_comma = false,     -- don't add a trailing comma when splitting
-        max_partners = 10,
-      },
-      -- Dictionaries: e.g., {a = 1, b = 2}
-      dictionary = {
-        format = 'pairs',
-        recursive = true,
-        nodes = {
-          element = { 'pair' },     -- each key‑value pair
-          separator = { ',' },
-        },
-        trailing_comma = false,
-      },
-      -- Function parameter lists
-      parameters = {
-        format = 'identifier',
-        recursive = false,
-        nodes = {
-          element = { 'identifier', 'default_parameter' }, -- parameters
-          separator = { ',' },
-        },
-      },
-      -- Function call arguments
-      arguments = {
-        format = 'expression',
-        recursive = false,
-        nodes = {
-          element = { 'argument' }, -- in newer grammar may be 'argument' or 'value'
-          separator = { ',' },
-        },
-      },
-      -- Function definition (uses built‑in formatter)
-      function_definition = {
-        format = 'function',
-        recursive = true,
-      },
-      -- If / for / while / match / class (use block formatter)
-      if_statement = { format = 'block', recursive = true },
-      for_statement = { format = 'block', recursive = true },
-      while_statement = { format = 'block', recursive = true },
-      match_statement = { format = 'block', recursive = true },
-      match_case = { format = 'block', recursive = true },
-      class_definition = { format = 'block', recursive = true },
-      -- Signals and enums
-      signal_definition = {
-        format = 'list',
-        recursive = false,
-        nodes = {
-          element = { 'identifier' }, -- signal parameters
-          separator = { ',' },
-        },
-      },
-      enum_definition = {
-        format = 'list',
-        recursive = true,
-        nodes = {
-          element = { 'enum_item' },
-          separator = { ',' },
-        },
-      },
-    },
-  },
+require("gitsigns").setup({
+	signs = {
+		add = { text = "┃" },
+		change = { text = "┃" },
+		delete = { text = "_" },
+		topdelete = { text = "‾" },
+		changedelete = { text = "~" },
+		untracked = { text = "┆" },
+	},
+	signs_staged = {
+		add = { text = "┃" },
+		change = { text = "┃" },
+		delete = { text = "_" },
+		topdelete = { text = "‾" },
+		changedelete = { text = "~" },
+		untracked = { text = "┆" },
+	},
+	signs_staged_enable = true,
+	signcolumn = true, -- Toggle with `:Gitsigns toggle_signs`
+	numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
+	linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
+	word_diff = false, -- Toggle with `:Gitsigns toggle_word_diff`
+	watch_gitdir = {
+		follow_files = true,
+	},
+	auto_attach = true,
+	attach_to_untracked = false,
+	current_line_blame = false, -- Toggle with `:Gitsigns toggle_current_line_blame`
+	current_line_blame_opts = {
+		virt_text = true,
+		virt_text_pos = "eol", -- 'eol' | 'overlay' | 'right_align'
+		delay = 1000,
+		ignore_whitespace = false,
+		virt_text_priority = 100,
+		use_focus = true,
+	},
+	current_line_blame_formatter = "<author>, <author_time:%R> - <summary>",
+	sign_priority = 6,
+	update_debounce = 100,
+	status_formatter = nil, -- Use default
+	max_file_length = 40000, -- Disable if file is longer than this (in lines)
+	preview_config = {
+		-- Options passed to nvim_open_win
+		style = "minimal",
+		relative = "cursor",
+		row = 0,
+		col = 1,
+	},
+})
+vim.lsp.config("roslyn", {
+	on_attach = function()
+		print("This will run when the server attaches!")
+	end,
+	settings = {
+		["csharp|inlay_hints"] = {
+			csharp_enable_inlay_hints_for_implicit_object_creation = true,
+			csharp_enable_inlay_hints_for_implicit_variable_types = true,
+		},
+		["csharp|code_lens"] = {
+			dotnet_enable_references_code_lens = true,
+		},
+	},
 })
 
-require('gitsigns').setup {
-  signs = {
-    add          = { text = '┃' },
-    change       = { text = '┃' },
-    delete       = { text = '_' },
-    topdelete    = { text = '‾' },
-    changedelete = { text = '~' },
-    untracked    = { text = '┆' },
-  },
-  signs_staged = {
-    add          = { text = '┃' },
-    change       = { text = '┃' },
-    delete       = { text = '_' },
-    topdelete    = { text = '‾' },
-    changedelete = { text = '~' },
-    untracked    = { text = '┆' },
-  },
-  signs_staged_enable = true,
-  signcolumn = true,  -- Toggle with `:Gitsigns toggle_signs`
-  numhl      = false, -- Toggle with `:Gitsigns toggle_numhl`
-  linehl     = false, -- Toggle with `:Gitsigns toggle_linehl`
-  word_diff  = false, -- Toggle with `:Gitsigns toggle_word_diff`
-  watch_gitdir = {
-    follow_files = true
-  },
-  auto_attach = true,
-  attach_to_untracked = false,
-  current_line_blame = false, -- Toggle with `:Gitsigns toggle_current_line_blame`
-  current_line_blame_opts = {
-    virt_text = true,
-    virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
-    delay = 1000,
-    ignore_whitespace = false,
-    virt_text_priority = 100,
-    use_focus = true,
-  },
-  current_line_blame_formatter = '<author>, <author_time:%R> - <summary>',
-  sign_priority = 6,
-  update_debounce = 100,
-  status_formatter = nil, -- Use default
-  max_file_length = 40000, -- Disable if file is longer than this (in lines)
-  preview_config = {
-    -- Options passed to nvim_open_win
-    style = 'minimal',
-    relative = 'cursor',
-    row = 0,
-    col = 1
-  },
+-- Format on save: handled by conform.nvim (see lua/plugins/lsp.lua).
 
-  vim.lsp.config("roslyn", {
-      on_attach = function()
-	  print("This will run when the server attaches!")
-      end,
-      settings = {
-	  ["csharp|inlay_hints"] = {
-	      csharp_enable_inlay_hints_for_implicit_object_creation = true,
-	      csharp_enable_inlay_hints_for_implicit_variable_types = true,
-	  },
-	  ["csharp|code_lens"] = {
-	      dotnet_enable_references_code_lens = true,
-	  },
-      },
-  })
-}
+vim.g.neovide_scale_factor = 0.85
